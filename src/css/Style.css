@@ -30,13 +30,25 @@ body {
   margin: 0;
 }
 
-.app {
+.app-notes {
+  display: flex;
+  flex-direction: column;
   background-color: white;
   width: 300px;
   height: 80vh;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 10px 0px 0px 10px;
+
+}
+
+.app-todo {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  width: 300px;
+  height: 80vh;
+  padding: 20px;
+  border-radius: 0px 10px 10px 0px;
 }
 
 .input-group {
@@ -153,4 +165,22 @@ body {
 
 .header {
   margin-bottom: 20px;
+}
+
+.input-edit {
+  font-size: 16px; 
+  padding: 8px;
+  margin-right: 10px; 
+  border: none;
+  border-radius: 4px;
+  width: calc(100% - 60px); 
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  background-color: #F0F0F0; 
+}
+
+.input-edit:focus {
+  outline: none; 
+  border-color: #0056b3; 
+  box-shadow: 0 0 0 2px rgba(0,86,179,0.25); 
 }

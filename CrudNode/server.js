@@ -20,6 +20,9 @@ app.use('/car', carRoutes);
 import taskRoutes from './src/routes/taskRoutes.js';
 app.use('/task', taskRoutes);
 
+import noteRoutes from './src/routes/noteRoutes.js';
+app.use('/note', noteRoutes);
+
 app.listen(port, () => {
     console.log(`link: http://localhost:${port}/`);
 })

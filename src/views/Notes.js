@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '../css/App.css';
+import '../css/Style.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClipboardCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
@@ -7,6 +7,8 @@ import axios from 'axios';
 export default function App() {
     const [tasks, setTasks] = useState([]);
     const [inputValue, setInputValue] = useState('');
+    const [editingIndex, setEditingIndex] = useState(null);
+    const [editText, setEditText] = useState('');
 
     useEffect(() => {
         getTasks();
@@ -14,10 +16,9 @@ export default function App() {
     
     async function createTask() {
         const data = {
-            description: inputValue,
-            completed: false
+            description: inputValue
         };
-        const baseUrl = `http://${process.env.REACT_APP_IP}:${process.env.REACT_APP_PORT}/task`;
+        const baseUrl = `http://${process.env.REACT_APP_IP}:${process.env.REACT_APP_PORT}/note`;
         await axios.post(baseUrl, data)
         .then(response => {
             setTasks([...tasks, { ...data, _id: response.data._id }]);
@@ -27,7 +28,7 @@ export default function App() {
     }
 
     async function getTasks() {
-        const baseUrl = `http://${process.env.REACT_APP_IP}:${process.env.REACT_APP_PORT}/task`;
+        const baseUrl = `http://${process.env.REACT_APP_IP}:${process.env.REACT_APP_PORT}/note`;
         await axios.get(baseUrl)
         .then(response => {
             setTasks(response.data);
@@ -37,7 +38,7 @@ export default function App() {
     }
     
     async function deleteTaskFromDB(taskData, index) {
-        const baseUrl = `http://${process.env.REACT_APP_IP}:${process.env.REACT_APP_PORT}/task/${taskData._id}`;
+        const baseUrl = `http://${process.env.REACT_APP_IP}:${process.env.REACT_APP_PORT}/note/${taskData._id}`;
         await axios.delete(baseUrl)
         .then(() => {
             const updatedTasks = tasks.filter((task, idx) => idx !== index);
@@ -45,24 +46,12 @@ export default function App() {
         }).catch(error => {
             console.log(error);
         });
-    }
-    
-    async function updateTask(taskData) {
-        const data = {
-            completed: taskData.completed
-        };
-        const baseUrl = `http://${process.env.REACT_APP_IP}:${process.env.REACT_APP_PORT}/task/${taskData._id}`;
-        await axios.put(baseUrl, data)
-        .catch(error => {
-            console.log(error);
-        });
-    }
+    }    
 
     function addTask() {
         if (inputValue.trim() !== '') {
             const newTask = {
-                description: inputValue,
-                completed: false
+                description: inputValue
             };
             setTasks([...tasks, newTask]);
             createTask();
@@ -70,34 +59,37 @@ export default function App() {
         }
     };
 
-    function markDone(index) {
-        const updatedTasks = tasks.map((task, idx) => {
-            if (idx === index) {
-                const updatedTask = { ...task, completed: !task.completed };
-                updateTask(updatedTask);
-                return updatedTask;
-            }
-            return task;
-        });
-    
-        const sortedTasks = updatedTasks.sort((a, b) => {
-            return a.completed === b.completed ? 0 : a.completed ? 1 : -1;
-        });
-    
-        setTasks(sortedTasks);
-    }
-
     function handleKeyDown(e) {
         if (e.key === 'Enter') {
             addTask();
         }
     }
     
+    function startEditing(task, index) {
+        setEditingIndex(index);
+        setEditText(task.description);
+    }
+
+    async function saveEdit(task, index) {
+        const updatedTask = { ...task, description: editText };
+        const baseUrl = `http://${process.env.REACT_APP_IP}:${process.env.REACT_APP_PORT}/note/${task._id}`;
+        try {
+            await axios.put(baseUrl, updatedTask);
+            const updatedTasks = tasks.map((t, idx) => idx === index ? updatedTask : t);
+            setTasks(updatedTasks);
+            setEditingIndex(null);  // Sair do modo de edição
+            setEditText('');
+        } catch (error) {
+            console.error("Erro ao salvar as edições:", error);
+        }
+    }
+    
+ 
     return (
-        <div className="app">
+        <div className="app-notes">
             <div className='header'>
                 <FontAwesomeIcon icon={faClipboardCheck} className='clipboard-icon' />
-                <div className='title'>To-Do List</div>
+                <div className='title'>Notes</div>
             </div>
             <div className="input-group">
                 <input
@@ -105,21 +97,26 @@ export default function App() {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Add a new task..."
+                    placeholder="Add a new note..."
                 />
                 <button onClick={addTask}>Add</button>
             </div>
             <div className="task-list">
                 {tasks.map((task, index) => (
                     <div key={index} className={`task ${task.completed ? 'completed' : ''}`}>
-                        <input
-                            type="checkbox"
-                            checked={task.completed}
-                            onChange={() => markDone(index)}
-                            style={{ cursor: 'pointer', marginRight: '10px'}}
-                        />
-                        <span className='text-description'>{task.description}</span>
-                        <FontAwesomeIcon icon={faTrash} id='trash-icon' onClick={() => deleteTaskFromDB(task, index)}/>
+                        {editingIndex === index ? (
+                            <input
+                                className="input-edit"
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && saveEdit(task, index)}
+                            />
+                        ) : (
+                            <span className='text-description' onClick={() => startEditing(task, index)}>
+                                {task.description}
+                            </span>
+                        )}
+                        <FontAwesomeIcon icon={faTrash} id='trash-icon' style={{ cursor: 'pointer', }}onClick={() => deleteTaskFromDB(task, index)}/>
                     </div>
                 ))}
             </div>
