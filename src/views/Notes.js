@@ -22,6 +22,7 @@ export default function App() {
         await axios.post(baseUrl, data)
         .then(response => {
             setTasks([...tasks, { ...data, _id: response.data._id }]);
+            getTasks();
         }).catch(error => {
             console.log(error);
         });
@@ -43,6 +44,7 @@ export default function App() {
         .then(() => {
             const updatedTasks = tasks.filter((task, idx) => idx !== index);
             setTasks(updatedTasks);
+            getTasks();
         }).catch(error => {
             console.log(error);
         });
@@ -77,8 +79,9 @@ export default function App() {
             await axios.put(baseUrl, updatedTask);
             const updatedTasks = tasks.map((t, idx) => idx === index ? updatedTask : t);
             setTasks(updatedTasks);
-            setEditingIndex(null);  // Sair do modo de edição
+            setEditingIndex(null); 
             setEditText('');
+            getTasks();
         } catch (error) {
             console.error("Erro ao salvar as edições:", error);
         }

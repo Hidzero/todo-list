@@ -24,6 +24,7 @@ export default function App() {
         await axios.post(baseUrl, data)
         .then(response => {
             setTasks([...tasks, { ...data, _id: response.data._id }]);
+            getTasks();
         }).catch(error => {
             console.log(error);
         });
@@ -45,6 +46,7 @@ export default function App() {
         .then(() => {
             const updatedTasks = tasks.filter((task, idx) => idx !== index);
             setTasks(updatedTasks);
+            getTasks();
         }).catch(error => {
             console.log(error);
         });
@@ -56,6 +58,9 @@ export default function App() {
         };
         const baseUrl = `http://${process.env.REACT_APP_IP}:${process.env.REACT_APP_PORT}/task/${taskData._id}`;
         await axios.put(baseUrl, data)
+        .then(() => {
+            getTasks();
+        })
         .catch(error => {
             console.log(error);
         });
